@@ -16550,4 +16550,22 @@ Desensamblado de la sección .text:
    101e8:	17ffffb5 	b	100bc <loop2>
 
 00000000000101ec <InfLoop>:
-   101ec:	14000000 	b	101ec <InfLoop>
+   101ec:	97ffffad 	bl	100a0 <inputRead>
+   101f0:	b4fffff6 	cbz	x22, 101ec <InfLoop>
+   101f4:	14000001 	b	101f8 <pintrojo>
+
+00000000000101f8 <pintrojo>:
+   101f8:	529f0003 	mov	w3, #0xf800                	// #63488
+   101fc:	d2804002 	mov	x2, #0x200                 	// #512
+
+0000000000010200 <loop11>:
+   10200:	d2804001 	mov	x1, #0x200                 	// #512
+
+0000000000010204 <loop01>:
+   10204:	78000143 	sturh	w3, [x10]
+   10208:	9100094a 	add	x10, x10, #0x2
+   1020c:	d1000421 	sub	x1, x1, #0x1
+   10210:	b5ffffa1 	cbnz	x1, 10204 <loop01>
+   10214:	d1000442 	sub	x2, x2, #0x1
+   10218:	b5ffff42 	cbnz	x2, 10200 <loop11>
+   1021c:	17fffff4 	b	101ec <InfLoop>
