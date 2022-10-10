@@ -114,22 +114,4 @@ delay1:
 	
 	// --- Infinite Loop ---	
 InfLoop: 
-	bl inputRead
-	cbz x22,InfLoop
-	b pintrojo
-	// -------------------
-
-pintrojo:
-	mov w3, 0xF800    	// 0xF800 = ROJO	
-	mov x2,512         	// Tamaño en Y
-loop11:
-	mov x1,512         	// Tamaño en X
-loop01:
-	sturh w3,[x10]	   	// Setear el color del pixel N
-	add x10,x10,2	   	// Siguiente pixel
-	sub x1,x1,1	   		// Decrementar el contador X
-	cbnz x1,loop01	   	// Si no terminó la fila, saltar
-	sub x2,x2,1	   		// Decrementar el contador Y
-	cbnz x2,loop11	  	// Si no es la última fila, saltar
 	b InfLoop
-	
