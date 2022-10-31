@@ -485,6 +485,24 @@ obsv110:
 	cmp x2,372		// Incrementar el contador Y
 	bne obsv111		// Si no es la última fila, saltar
 
+	mov w3,0xF800
+	mov x2,494
+llegada1:
+	mov x1,494
+llegada0:
+	mul x12,x2,x13
+	add x10,x12,x1
+	add x10,x10,x10
+	add x10,x0,x10
+	sturh w3,[x10]
+	add x10,x10,2	   	// Siguiente pixel
+	sub x1,x1,1		// Incrementar el contador X
+	cmp x1,452	   	
+	bne llegada0		// Si no terminó la fila, saltar
+	sub x2,x2,1
+	cmp x2,490		// Incrementar el contador Y
+	bne llegada1		// Si no es la última fila, saltar
+
 
 	add x10,x0,0
 	
@@ -607,6 +625,15 @@ movedown:
 	ldurh w8,[x10]
 	cmp w8,w3
 	bne triangulorec
+
+	add x19,x19,10
+	mul x12,x18,x13
+	add x10,x12,x19
+	add x10,x10,x10
+	add x10,x0,x10
+	ldurh w8,[x10]
+	cmp w8,w3
+	bne triangulorec
 				
 	add x16,x16,1
 	b triangulorec
@@ -629,13 +656,22 @@ moveright:
 	cmp w8,w3
 	bne triangulorec
 
+	sub x18,x18,10
+	mul x12,x18,x13
+	add x10,x12,x19
+	add x10,x10,x10
+	add x10,x0,x10
+	ldurh w8,[x10]
+	cmp w8,w3
+	bne triangulorec
+
 	add x15,x15,1
 	add x17,x17,1
 	b triangulorec
 moveleft:
 	sub x19,x1,21
 	mul x12,x2,x13
-	add x10,x12,x1
+	add x10,x12,x19
 	add x10,x10,x10
 	add x10,x0,x10
 	ldurh w8,[x10]
@@ -643,6 +679,15 @@ moveleft:
 	bne triangulorec
 
 	add x18,x2,20
+	mul x12,x18,x13
+	add x10,x12,x19
+	add x10,x10,x10
+	add x10,x0,x10
+	ldurh w8,[x10]
+	cmp w8,w3
+	bne triangulorec
+
+	sub x18,x18,10
 	mul x12,x18,x13
 	add x10,x12,x19
 	add x10,x10,x10
@@ -672,7 +717,15 @@ moveup:
 	ldurh w8,[x10]
 	cmp w8,w3
 	bne triangulorec
+
+	add x19,x19,10
+	mul x12,x18,x13
+	add x10,x12,x19
+	add x10,x10,x10
+	add x10,x0,x10
+	ldurh w8,[x10]
+	cmp w8,w3
+	bne triangulorec
 	
 	sub x16,x16,1
 	b triangulorec
-	
