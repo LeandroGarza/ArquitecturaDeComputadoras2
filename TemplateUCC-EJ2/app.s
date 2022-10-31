@@ -6,11 +6,19 @@ app:
 	
 	// Configurar GPIO 17 como input:
 	mov X21,#0
-	str w21,[x20,GPIO_GPFSEL1] 		// Coloco 0 en Function Select 1 (base + 4)   	
+	str w21,[x20,GPIO_GPFSEL1] 		// Coloco 0 en Function Select 1 (base + 4)  
+
+	
+	// Configurar GPIO 2 y 3 como output:
+	mov X26,#0x240
+	str w26,[x20,0] 		// 001 en los gpio 2 y 3   	
 	
 	//---------------- Main code --------------------
 	// X0 contiene la dirección base del framebuffer (NO MODIFICAR)
-	
+
+	mov w26,0x4
+	bl outputOff
+
 	mov w3, 0xDFFF    	// color	
 	add x10, x0, 0		// X10 contiene la dirección base del framebuffer
 loop2:
@@ -476,23 +484,195 @@ obsv110:
 	sub x2,x2,1
 	cmp x2,372		// Incrementar el contador Y
 	bne obsv111		// Si no es la última fila, saltar
-	b InfLoop
 
 
-// --- Delay loop ---
-	movz x11, 0x10, lsl #16
-delay1: 
-	sub x11,x11,#1
-	cbnz x11, delay1
-	// ------------------
-		
-	bl inputRead		// Leo el GPIO17 y lo guardo en x21
-	mov w3, 0x001F    	// 0x001F = AZUL	
-	add x10, x0, 0		// X10 contiene la dirección base del framebuffer
-	cbz X22, loop2
-	mov w3, 0x07E0    	// 0x07E0 = VERDE			
-	b loop2
+	add x10,x0,0
 	
-	// --- Infinite Loop ---	
-InfLoop: 
-	b InfLoop
+
+// la posicion inicial de x2 es 242 y la x es 49
+
+	mov x15,0		// variacion en x
+	mov x16,0		// variacion en y
+	mov x17,0
+triangulorec:
+	mov w3,0x07E0		//verde
+	mov x14,29		// 
+	add x14,x14,x17		// posicion final en x (fin de linea)
+	mov x2,242		// posicion inicial en y del vertice inferior derecho
+	add x2,x2,x16		// le agrego la variacion
+	mov x9,x2		
+	sub x9,x9,20		// posicion final en y
+triangulorec1:
+	mov x1,49		// posicion inicial en x del vertice inferior derecho
+	add x1,x1,x15
+triangulorec0:
+	mul x12,x2,x13
+	add x10,x12,x1
+	add x10,x10,x10
+	add x10,x0,x10
+	sturh w3,[x10]
+	add x10,x10,2	   	// Siguiente pixel
+	sub x1,x1,1		// Incrementar el contador X
+	cmp x1,x14		// me fijo si llegue al fin de linea	   	
+	bne triangulorec0		// Si no terminó la fila, saltar
+	add x14,x14,1		// le sumo uno al fin de linea
+	sub x2,x2,1		// Incrementar el contador Y
+	cmp x2,x9		// 
+	bne triangulorec1		// Si no es la última fila, saltar
+
+	mov x9,494
+llegue1:
+	mov x8,494
+llegue0:
+	mul x12,x9,x13
+	add x10,x12,x8
+	add x10,x10,x10
+	add x10,x0,x10
+	ldurh w7,[x10]
+	cmp w3,w7
+	beq win
+	sub x8,x8,1		// Incrementar el contador X
+	cmp x8,468	   	
+	bne llegue0		// Si no terminó la fila, saltar
+	sub x9,x9,1
+	cmp x9,480		// Incrementar el contador Y
+	bne llegue1		// Si no es la última fila, saltar
+	b sigue
+
+win:
+	mov w26,0x8
+	bl outputOff
+	mov w26,0x4
+	bl outputOn
+
+sigue:
+// --- Delay loop ---
+	movz x11, 0x1, lsl #16
+delay01: 
+	sub x11,x11,#1
+	cbnz x11, delay01
+	// ------------------
+
+mov w3, 0xDFFF    	// despues va a ser del mismo color del fondo
+	mov x14,29		// 
+	add x14,x14,x17		// posicion final en x (fin de linea)
+	mov x2,242		// posicion inicial en y del vertice inferior derecho
+	add x2,x2,x16		// le agrego la variacion
+	mov x9,x2		
+	sub x9,x9,20		// posicion final en y
+borrartriangulorec1:
+	mov x1,49		// posicion inicial en x del vertice inferior derecho
+	add x1,x1,x15
+borrartriangulorec0:
+	mul x12,x2,x13
+	add x10,x12,x1
+	add x10,x10,x10
+	add x10,x0,x10
+	sturh w3,[x10]
+	add x10,x10,2	   	// Siguiente pixel
+	sub x1,x1,1		// Incrementar el contador X
+	cmp x1,x14		// me fijo si llegue al fin de linea	   	
+	bne borrartriangulorec0		// Si no terminó la fila, saltar
+	add x14,x14,1		// le sumo uno al fin de linea
+	sub x2,x2,1		// Incrementar el contador Y
+	cmp x2,x9		// 
+	bne borrartriangulorec1		// Si no es la última fila, saltar
+
+	
+
+// leo los pulsadores
+
+	bl inputRead		// Leo el GPIO17 y lo guardo en x21
+	cbnz x22, movedown	// si el bit 17 no esta en 0, salto a moveright
+	cbnz x23, moveleft
+	cbnz x24, moveright
+	cbnz x25, moveup
+	b triangulorec
+
+movedown:
+	add x18,x2,21
+	mul x12,x18,x13
+	add x10,x12,x1
+	add x10,x10,x10
+	add x10,x0,x10
+	ldurh w8,[x10]
+	cmp w8,w3
+	bne triangulorec
+
+	sub x19,x1,20
+	mul x12,x18,x13
+	add x10,x12,x19
+	add x10,x10,x10
+	add x10,x0,x10
+	ldurh w8,[x10]
+	cmp w8,w3
+	bne triangulorec
+				
+	add x16,x16,1
+	b triangulorec
+moveright:
+	add x19,x1,2
+	mul x12,x2,x13
+	add x10,x12,x19
+	add x10,x10,x10
+	add x10,x0,x10
+	ldurh w8,[x10]
+	cmp w8,w3
+	bne triangulorec
+
+	add x18,x2,20
+	mul x12,x18,x13
+	add x10,x12,x19
+	add x10,x10,x10
+	add x10,x0,x10
+	ldurh w8,[x10]
+	cmp w8,w3
+	bne triangulorec
+
+	add x15,x15,1
+	add x17,x17,1
+	b triangulorec
+moveleft:
+	sub x19,x1,21
+	mul x12,x2,x13
+	add x10,x12,x1
+	add x10,x10,x10
+	add x10,x0,x10
+	ldurh w8,[x10]
+	cmp w8,w3
+	bne triangulorec
+
+	add x18,x2,20
+	mul x12,x18,x13
+	add x10,x12,x19
+	add x10,x10,x10
+	add x10,x0,x10
+	ldurh w8,[x10]
+	cmp w8,w3
+	bne triangulorec
+	
+	sub x15,x15,1
+	sub x17,x17,1
+	b triangulorec
+moveup:
+	sub x18,x2,1
+	mul x12,x18,x13
+	add x10,x12,x1
+	add x10,x10,x10
+	add x10,x0,x10
+	ldurh w8,[x10]
+	cmp w8,w3
+	bne triangulorec
+
+	sub x19,x1,20
+	mul x12,x18,x13
+	add x10,x12,x19
+	add x10,x10,x10
+	add x10,x0,x10
+	ldurh w8,[x10]
+	cmp w8,w3
+	bne triangulorec
+	
+	sub x16,x16,1
+	b triangulorec
+	
